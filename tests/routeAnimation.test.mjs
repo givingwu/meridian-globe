@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { routeWindow } from '../src/routeAnimation.ts'
+import { routeWindow } from '../src/features/globe/math/routeAnimation.ts'
 
 test('a route starts empty and grows from a fixed origin to the destination', () => {
   assert.deepEqual(routeWindow(0, 0, 20), { start: 0, end: 0 })

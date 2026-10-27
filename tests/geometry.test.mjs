@@ -2,7 +2,9 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { Vector3 } from 'three'
-import { FlightCurve, cities, routes, toPosition } from '../src/data.ts'
+import { cities, routes } from '../src/features/globe/data/network.ts'
+import { toPosition } from '../src/features/globe/math/coordinates.ts'
+import { FlightCurve } from '../src/features/globe/math/FlightCurve.ts'
 
 test('geographic coordinates follow a consistent, north-up convention', () => {
   assert.ok(toPosition(0, 0).distanceTo(new Vector3(0, 0, 2)) < 1e-9)
@@ -33,7 +35,9 @@ test('coincident and antipodal destinations remain finite and outside the sphere
 })
 test('precomputed land is nonempty, finite, and on the unit sphere', () => {
   const land = JSON.parse(
-    readFileSync(new URL('../src/land.json', import.meta.url)),
+    readFileSync(
+      new URL('../src/features/globe/data/land.json', import.meta.url),
+    ),
   )
   assert.ok(land.length / 3 > 15000 && land.length / 3 < 30000)
   assert.equal(land.length % 3, 0)

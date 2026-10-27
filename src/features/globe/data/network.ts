@@ -1,4 +1,9 @@
-import { Curve, Vector3 } from 'three'
+/**
+ * 演示网络只存储可序列化数据，不依赖 Three.js。
+ * 这样 DOM 面板无需为了显示城市名就下载 WebGL 运行时。
+ * routes 是有向边 [起点索引, 终点索引]；重新排列城市时必须同步迁移边。
+ * code 是稳定 UI key，香港的 HK 是产品简称，不是机场代码。
+ */
 export const cities = [
   {
     name: 'London',
@@ -75,15 +80,8 @@ export const cities = [
   },
 ] as const
 export type City = (typeof cities)[number]
-export function toPosition(lat: number, lon: number, radius = 2) {
-  const phi = (lat * Math.PI) / 180,
-    theta = (lon * Math.PI) / 180
-  return new Vector3(
-    Math.cos(phi) * Math.sin(theta),
-    Math.sin(phi),
-    Math.cos(phi) * Math.cos(theta),
-  ).multiplyScalar(radius)
-}
+
+/** 固定的 20 条示例连接，不代表真实交易数据。 */
 export const routes = [
   [0, 1],
   [0, 2],
@@ -107,42 +105,6 @@ export const routes = [
   [12, 3],
 ] as const
 export const colors = ['#a996ff', '#70e1e8', '#658dff', '#edafd8']
-export const HOME_POSITION = toPosition(24, 108, 6.94).toArray()
 
-/** Great-circle direction with radial lift. Endpoints sit just above the ocean. */
-export class FlightCurve extends Curve<Vector3> {
-  private a: Vector3
-  private b: Vector3
-  constructor(a: Vector3, b: Vector3) {
-    super()
-    this.a = a.clone().normalize()
-    this.b = b.clone().normalize()
-  }
-  getPoint(t: number, target = new Vector3()) {
-    const angle = this.a.angleTo(this.b)
-    const denominator = Math.sin(angle)
-    if (Math.abs(denominator) < 1e-6) {
-      if (angle < 1e-6) return target.copy(this.a).multiplyScalar(2.018)
-      // Antipodal points have no unique great circle; choose a stable orthogonal axis.
-      const axis = new Vector3()
-        .crossVectors(
-          this.a,
-          Math.abs(this.a.y) < 0.9
-            ? new Vector3(0, 1, 0)
-            : new Vector3(1, 0, 0),
-        )
-        .normalize()
-      target.copy(this.a).applyAxisAngle(axis, Math.PI * t)
-    } else {
-      target
-        .copy(this.a)
-        .multiplyScalar(Math.sin((1 - t) * angle) / denominator)
-        .addScaledVector(this.b, Math.sin(t * angle) / denominator)
-    }
-    return target
-      .normalize()
-      .multiplyScalar(
-        2.018 + Math.sin(Math.PI * t) * Math.min(angle * 0.53, 0.95),
-      )
-  }
-}
+/** 通过城市代码查找入口，避免组件内出现不透明的数字 12。 */
+export const EXPLORE_CITY_INDEX = cities.findIndex((city) => city.code === 'HK')
