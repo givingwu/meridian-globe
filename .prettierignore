@@ -1,5 +1,5 @@
 node_modules
 dist
 pnpm-lock.yaml
-src/land.json
+src/features/globe/data/land.json
 *.tsbuildinfo

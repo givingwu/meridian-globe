@@ -909,3 +909,17 @@ footer button {
     transition: none !important;
   }
 }
+
+/* Native dialog supplies top-layer focus isolation; retain the existing card design. */
+.about-dialog {
+  border: 0;
+  padding: 24px;
+  background: transparent;
+  color: inherit;
+  max-width: 100vw;
+  max-height: 100dvh;
+}
+.about-dialog::backdrop {
+  background: rgba(4, 9, 25, 0.75);
+  backdrop-filter: blur(9px);
+}

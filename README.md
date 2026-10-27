@@ -66,7 +66,7 @@ pnpm dev
 
 ### 陆地点阵
 
-`scripts/generate-land.mjs` 用 Fibonacci 分布均匀采样球面，通过 `world-atlas` 的 Natural Earth 1:110m 陆地轮廓筛选点位，再写入 `src/land.json`。
+`scripts/generate-land.mjs` 用 Fibonacci 分布均匀采样球面，通过 `world-atlas` 的 Natural Earth 1:110m 陆地轮廓筛选点位，再写入 `src/features/globe/data/land.json`。
 
 运行时使用单个 `Points / BufferGeometry` 绘制点阵，并通过 shader 控制颜色和闪烁，避免创建数万个 React 组件或逐帧进行地理计算。
 
@@ -88,46 +88,65 @@ pnpm dev
 
 ```text
 src/
-  App.tsx             页面布局与交互状态
-  Globe.tsx           地球场景、控制器、城市标记与飞线
-  shaders.ts          海洋、光晕、点阵与飞线 GLSL
-  data.ts             城市、路线、经纬度转换与 FlightCurve
-  routeAnimation.ts   飞线生长、收走及错峰循环时序
-  land.json           预生成陆地点坐标
-  style.css           页面与响应式样式
+  app/App.tsx                  页面组合与说明弹窗状态
+  components/                  DOM 组件、布局、错误边界、原生 dialog
+  hooks/useBrowserPreferences.ts 浏览器可见性/减少动态效果订阅
+  features/globe/
+    GlobeExperience.tsx        功能入口与交互布局
+    GlobeCanvas.tsx            懒加载 Canvas、后台停帧
+    config.ts / types.ts       场景参数与组件契约
+    components/                场景、点阵、海洋、飞线、城市、镜头与控件
+    hooks/useGlobeControls.ts  用户操作入口与派生状态
+    state/controls.ts         可独立测试的纯 reducer
+    data/                     城市、路线与预生成陆地点阵
+    math/                     经纬度转换、大圆弧线、动画时序
+    shaders/                  按视觉层拆分的 GLSL
+  styles/global.css           页面与响应式样式
 scripts/
   generate-land.mjs   地理数据生成脚本
 tests/
+  controls.test.mjs       重置、缩放、探索与播放状态边界
   geometry.test.mjs       坐标、弧线边界、地理数据与城市列表
   routeAnimation.test.mjs 飞线生长、收走及错峰区间验证
 docs/
   preview.png         效果截图
 ```
 
+## React 状态与资源边界
+
+- 用户意图由功能内的纯 reducer 管理；重置和探索等复合操作一次更新完成。系统动态偏好通过 `useSyncExternalStore` 订阅，用户操作优先。
+- 每帧进度、相机目标放在 ref 中，GPU uniforms 原位更新；不在帧循环触发 React 渲染。几何和材质参数保持稳定，R3F 在卸载时释放声明式资源。
+- Effect 只同步相机/浏览器等外部系统，并对监听、dialog 与页面滚动锁提供对称清理，兼容 StrictMode。
+- lazy 在模块级声明，Suspense 与错误边界分别处理加载和失败；原生 dialog 提供焦点约束、Escape 和关闭后的焦点恢复。
+- 核心代码注释说明单位、坐标约定、算法边界、资源所有权及选择原因。城市独立脉冲和飞线生长/收走效果保持原版行为。
+
 ## 自定义
 
-- **城市与路线**：编辑 `src/data.ts` 中的 `cities` 和 `routes`。路线的两个数字分别是起点与终点在城市数组中的索引；修改城市顺序时需同步修改路线。
-- **颜色与光晕**：编辑 `src/shaders.ts`，飞线与城市的颜色列表位于 `src/data.ts`。
-- **动画节奏**：编辑 `src/routeAnimation.ts` 中的生长、收走与错峰时间。
+- **城市与路线**：编辑 `src/features/globe/data/network.ts` 中的 `cities` 和 `routes`。路线的两个数字分别是起点与终点在城市数组中的索引；修改城市顺序时需同步修改路线。
+- **颜色与光晕**：编辑 `src/features/globe/shaders/`，飞线与城市的颜色列表位于 `src/features/globe/data/network.ts`。
+- **动画节奏**：编辑 `src/features/globe/math/routeAnimation.ts` 中的生长、收走与错峰时间。
 - **点阵密度**：修改生成脚本中的采样数量，运行 `pnpm generate:land`，并同步检查数据规模测试与文档。
 
 ## 验证与部署
 
 ```bash
 pnpm format:check
+pnpm lint
 pnpm test
 pnpm build
 ```
 
-包含 8 项测试，覆盖坐标方向、弧线端点和球体外部约束、极端地理位置、陆地数据、城市列表及动画边界。
+包含 12 项几何、动画与交互状态测试，覆盖坐标方向、弧线端点和球体外部约束、极端地理位置、陆地数据、城市列表及动画边界。
 
-默认分支为 `master`。`.github/workflows/ci-pages.yml` 在 PR 指向 `master`、推送到 `master` 或手动触发时，安装锁定依赖，执行格式检查、8 项测试与 TypeScript/生产构建。
+默认分支为 `master`。`.github/workflows/ci-pages.yml` 在 PR 指向 `master`、推送到 `master` 或手动触发时，安装锁定依赖，执行格式检查、ESLint（含 React Hooks 规则）、单元测试与 TypeScript/生产构建。
 
-只有 `master` 上通过验证的构建产物会上传并部署至 **https://givingwu.github.io/meridian-globe/**。PR（包括 fork PR）只验证，不具备部署权限。合并 PR 后触发的 `push` 会自动发布；直接推送到 `master` 同样会发布。
+只有 `master` 上通过验证的构建产物会上传并部署至 **https://givingwu.github.io/meridian-globe/**。PR（包括 fork PR）只验证，不具备部署权限。合并 PR 后触发的 `push` 会自动发布，分支保护禁止直接推送。
 
 工作流固定 Actions 的完整提交 SHA，使用 pnpm 缓存、明确 Node/pnpm 版本、任务超时和并发控制。默认令牌只读，只有部署任务获得 Pages/OIDC 写权限。Dependabot 每周检查 Actions 更新。部署使用 `github-pages` environment，不需要个人访问令牌或额外仓库密钥。
 
-GitHub 仓库的 **Settings → Pages → Source** 必须为 **GitHub Actions**。若复制本仓库，需要在新仓库启用此设置。建议在团队协作时为 `master` 配置要求 `Validate and build` 成功的分支规则。
+GitHub 仓库的 **Settings → Pages → Source** 必须为 **GitHub Actions**。若复制本仓库，需要在新仓库启用此设置。`master` 已启用分支保护（包括管理员）：必须通过 PR 合并，分支需与 `master` 保持同步，且 GitHub Actions 的 `Validate and build` 检查通过；讨论需解决，禁止强推、删除和非线性合并。当前不要求额外审批人数，适合个人仓库；CI 与 PR 要求仍强制执行。分支保护是 GitHub 仓库设置，fork 不会自动继承。
+
+推荐流程：新建功能分支 → 提交 PR → CI 通过 → squash/rebase 合并 → `master` 再次验证 → 自动部署 Pages。页面右上角的 GitHub 快捷链接在新窗口打开源码仓库。
 
 `VITE_BASE_PATH` 控制部署路径：工作流设为 `/<仓库名>/`，本地开发默认为 `/`。构建后也可将 `dist/` 放到其他静态托管服务。
 
