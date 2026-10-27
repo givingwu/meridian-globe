@@ -33,3 +33,11 @@ test('routes are staggered and all visible intervals remain bounded', () => {
       assert.ok(start >= 0 && end <= 1 && start <= end)
     }
 })
+
+test('reusable output has identical intervals and clears stale values during idle', () => {
+  const output = { start: 99, end: 99 }
+  for (const time of [0, 0.7, 2, 4, 7, 8, 20]) {
+    assert.equal(routeWindow(time, 0, 20, output), output)
+    assert.deepEqual(output, routeWindow(time, 0, 20))
+  }
+})

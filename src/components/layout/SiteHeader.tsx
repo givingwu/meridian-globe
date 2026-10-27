@@ -17,7 +17,7 @@ export function SiteHeader() {
         </a>
       </nav>
       <a
-        className="source-link"
+        className="source-link flex items-center"
         href="https://github.com/givingwu/meridian-globe"
         target="_blank"
         rel="noopener noreferrer"

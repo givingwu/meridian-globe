@@ -8,6 +8,8 @@ export function AboutDialog({ onClose }: { onClose: () => void }) {
     const dialog = ref.current
     const previousFocus = document.activeElement
     const previousOverflow = document.body.style.overflow
+    // 不使用 React autoFocus：它会在 Effect 前抢焦点，导致 previousFocus 变成关闭按钮。
+    // showModal 原生聚焦首个可聚焦元素，清理时可恢复真正的触发按钮。
     dialog?.showModal()
     document.body.style.overflow = 'hidden'
     // StrictMode 会执行 setup → cleanup → setup；关闭和还原均可重复执行。
@@ -28,12 +30,7 @@ export function AboutDialog({ onClose }: { onClose: () => void }) {
       }}
     >
       <section className="modal">
-        <button
-          autoFocus
-          className="modal-close"
-          aria-label="关闭说明"
-          onClick={onClose}
-        >
+        <button className="modal-close" aria-label="关闭说明" onClick={onClose}>
           <X size={20} />
         </button>
         <span className="eyebrow">BEHIND THE GLOBE</span>

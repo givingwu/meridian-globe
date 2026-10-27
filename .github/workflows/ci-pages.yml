@@ -44,6 +44,13 @@ jobs:
         run: pnpm lint
       - name: Test
         run: pnpm test
+      # ubuntu-24.04 already includes browser shared libraries. Avoid upgrading
+      # unrelated OS/font packages through a slow apt mirror on every run.
+      - name: Install Chromium headless shell
+        timeout-minutes: 3
+        run: pnpm exec playwright install --only-shell chromium
+      - name: Check browser interactions and resource cleanup
+        run: pnpm test:browser
       - name: Typecheck and build for Pages
         run: pnpm build
         env:
