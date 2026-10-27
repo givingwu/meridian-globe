@@ -15,7 +15,10 @@ export class SceneBoundary extends Component<
   }
   render() {
     return this.state.failed ? (
-      <div className="fallback">
+      <div
+        className="absolute inset-0 flex flex-col items-center justify-center gap-[18px] text-[13px] text-[#a69bcf]"
+        data-ui="fallback"
+      >
         地球加载失败，请刷新页面并确认浏览器已开启硬件加速。
       </div>
     ) : (

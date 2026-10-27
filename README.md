@@ -88,7 +88,7 @@ src/
     data/                      Cities, directed routes and generated land points
     shaders/                   GLSL, grouped by visual layer
     config.ts / types.ts       Shared parameters and contracts
-  styles/global.css            Tailwind theme, component styles and custom effects
+  styles/global.css            Tailwind theme, breakpoints and global reset only
 scripts/generate-land.mjs       Offline geographic sampling
 tests/                         Unit regressions and browser checks
 ```
@@ -97,18 +97,20 @@ Core code includes Chinese comments explaining units, edge cases, ownership and 
 
 ### Make it yours
 
-| Change                                   | File                                                           |
-| ---------------------------------------- | -------------------------------------------------------------- |
-| Cities, routes and accent colors         | [network.ts](src/features/globe/data/network.ts)               |
-| Route growth / retreat timing            | [routeAnimation.ts](src/features/globe/math/routeAnimation.ts) |
-| Home camera and distance limits          | [config.ts](src/features/globe/config.ts)                      |
-| Ocean, dots, glow and route shading      | [shaders/](src/features/globe/shaders/)                        |
-| Typography, layout and responsive styles | [global.css](src/styles/global.css)                            |
-| Land sampling density                    | [generate-land.mjs](scripts/generate-land.mjs)                 |
+| Change                                   | File                                                                                               |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Cities, routes and accent colors         | [network.ts](src/features/globe/data/network.ts)                                                   |
+| Route growth / retreat timing            | [routeAnimation.ts](src/features/globe/math/routeAnimation.ts)                                     |
+| Home camera and distance limits          | [config.ts](src/features/globe/config.ts)                                                          |
+| Ocean, dots, glow and route shading      | [shaders/](src/features/globe/shaders/)                                                            |
+| Typography, layout and responsive styles | Component `className` in [components/](src/components/) and [features/globe/](src/features/globe/) |
+| Land sampling density                    | [generate-land.mjs](scripts/generate-land.mjs)                                                     |
 
 Route pairs refer to city **array indices**. Reordering cities means updating routes too; the tests catch invalid or disconnected entries. `HK` is a display shorthand, not an airport code.
 
-Tailwind uses the official Vite plugin and CSS-first theme configuration. Shared visual components use `@apply`; simple layouts also use utilities directly in JSX. The existing base reset is retained instead of adding Preflight, so heading defaults, buttons and SVG alignment do not change. Custom CSS remains for layered gradients and exact transitions; WebGL visuals remain in shaders.
+Tailwind uses the official Vite plugin and CSS-first theme configuration. Component styling lives directly in JSX `className`: layout, typography, responsive overrides, hover/focus states, gradients and dialog backdrops. Repeated UI is shared through small components such as `FactCard`; pressed states use `aria-pressed` / `data-active` variants, with complete utility names visible to Tailwind's scanner.
+
+`global.css` contains only imports, theme tokens, breakpoint variants, the base reset, focus outlines and the reduced-motion policy. There are no component selectors or `@apply` blocks. The `compact` (≤760 px), `tablet` (>760–1100 px), and `wide` (≥1550 px) variants retain the existing inclusive boundaries. Prettier sorts utility classes automatically. `data-ui` attributes are inspection hooks, not styling selectors. WebGL appearance remains in shaders.
 
 ## Checks and deployment
 

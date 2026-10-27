@@ -87,11 +87,16 @@ export function CityMarker({
           center
           occlude
           position={[0, 0.11, 0.04]}
-          style={{ pointerEvents: 'none' }}
+          className="pointer-events-none"
         >
-          <div className="city-label">
+          <div
+            className="rounded-[5px] bg-[#131a33e8] px-[12px] py-[8px] text-[11px] whitespace-nowrap text-[#fff] [box-shadow:0_5px_20px_#0004] [border:1px_solid_#b7a8ff50]"
+            data-ui="city-label"
+          >
             {city.name}
-            <span>{city.country}</span>
+            <span className="mt-[4px] block text-[8px] text-[#8997b5]">
+              {city.country}
+            </span>
           </div>
         </Html>
       )}

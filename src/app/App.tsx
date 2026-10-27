@@ -13,7 +13,7 @@ export default function App() {
   return (
     <>
       <SiteHeader />
-      <main>
+      <main className="m-auto max-w-[1512px] px-[28px] py-0 compact:px-[12px]">
         <GlobeExperience />
         <CraftSection onAbout={openAbout} />
       </main>

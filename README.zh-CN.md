@@ -88,7 +88,7 @@ src/
     data/                      城市、有向路线与预生成陆地点
     shaders/                   按视觉层组织的 GLSL
     config.ts / types.ts       共享参数与接口
-  styles/global.css            Tailwind 主题、组件样式与自定义效果
+  styles/global.css            Tailwind 主题、断点与全局 reset
 scripts/generate-land.mjs       离线地理采样
 tests/                         单元回归与浏览器检查
 ```
@@ -97,18 +97,20 @@ tests/                         单元回归与浏览器检查
 
 ### 改成你自己的版本
 
-| 想改什么                   | 对应文件                                                       |
-| -------------------------- | -------------------------------------------------------------- |
-| 城市、路线、强调色         | [network.ts](src/features/globe/data/network.ts)               |
-| 飞线生长与收走节奏         | [routeAnimation.ts](src/features/globe/math/routeAnimation.ts) |
-| 初始镜头与距离限制         | [config.ts](src/features/globe/config.ts)                      |
-| 海洋、点阵、光晕和飞线着色 | [shaders/](src/features/globe/shaders/)                        |
-| 字体、布局与响应式样式     | [global.css](src/styles/global.css)                            |
-| 陆地点阵密度               | [generate-land.mjs](scripts/generate-land.mjs)                 |
+| 想改什么                   | 对应文件                                                                                      |
+| -------------------------- | --------------------------------------------------------------------------------------------- |
+| 城市、路线、强调色         | [network.ts](src/features/globe/data/network.ts)                                              |
+| 飞线生长与收走节奏         | [routeAnimation.ts](src/features/globe/math/routeAnimation.ts)                                |
+| 初始镜头与距离限制         | [config.ts](src/features/globe/config.ts)                                                     |
+| 海洋、点阵、光晕和飞线着色 | [shaders/](src/features/globe/shaders/)                                                       |
+| 字体、布局与响应式样式     | [components/](src/components/) 和 [features/globe/](src/features/globe/) 中的组件 `className` |
+| 陆地点阵密度               | [generate-land.mjs](scripts/generate-land.mjs)                                                |
 
 路线使用城市**数组索引**。调整城市顺序时，需要一起调整路线；测试会检查无效索引和未连接城市。`HK` 是显示简称，不是机场代码。
 
-Tailwind 使用官方 Vite 插件和 CSS-first 主题配置。共享视觉组件通过 `@apply` 组合工具类，简单布局也直接在 JSX 使用 utilities。为避免标题默认样式、按钮和 SVG 对齐变化，迁移时保留原有基础 reset，没有引入 Preflight。多层渐变和精确过渡继续用自定义 CSS；WebGL 的视觉效果仍由 shader 实现。
+Tailwind 使用官方 Vite 插件和 CSS-first 主题配置。组件的布局、字体、响应式、hover/focus、渐变与弹窗背景全部直接写在 JSX `className` 中。重复界面通过 `FactCard` 等小组件复用；选中状态使用 `aria-pressed` / `data-active` variants，工具类完整可见，不动态拼接类名。
+
+`global.css` 只保留导入、主题变量、断点 variants、基础 reset、焦点轮廓和减少动态效果策略，没有组件选择器或 `@apply`。`compact`（≤760 px）、`tablet`（>760–1100 px）、`wide`（≥1550 px）保留原有边界的包含关系。Prettier 自动排序类名。`data-ui` 只供检查定位，不承担样式。WebGL 外观仍由 shader 实现。
 
 ## 检查与部署
 
