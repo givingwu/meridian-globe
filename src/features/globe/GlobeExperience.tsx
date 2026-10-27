@@ -26,8 +26,7 @@ export function GlobeExperience() {
     showRoutes,
     speed,
     selected,
-    reset,
-    zoom,
+    cameraCommand,
     setSelected,
     resetView,
     zoomIn,
@@ -82,8 +81,7 @@ export function GlobeExperience() {
               showRoutes={showRoutes}
               speed={speed}
               selected={selected}
-              reset={reset}
-              zoom={zoom}
+              cameraCommand={cameraCommand}
               onSelect={setSelected}
             />
           </Suspense>

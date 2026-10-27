@@ -1,11 +1,11 @@
+import type { CameraCommand } from './state/controls'
 /** DOM 控制面板与 WebGL 场景之间唯一的交互契约，不暴露 Three.js 对象。 */
 export interface GlobeProps {
   paused: boolean
   showRoutes: boolean
   speed: number
   selected: number | null
-  reset: number
-  zoom: number
+  cameraCommand: CameraCommand
   onSelect: (index: number | null) => void
 }
 

@@ -3,3 +3,6 @@ dist
 pnpm-lock.yaml
 src/features/globe/data/land.json
 *.tsbuildinfo
+
+test-results
+playwright-report

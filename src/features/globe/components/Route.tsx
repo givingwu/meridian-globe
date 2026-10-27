@@ -38,6 +38,7 @@ export function Route({
   const material = useRef<ShaderMaterial>(null)
   const geometry = useRef<TubeGeometry>(null)
   const elapsed = useRef(0)
+  const window = useMemo(() => ({ start: 0, end: 0 }), [])
   const curve = useMemo(
     () =>
       new FlightCurve(
@@ -55,8 +56,15 @@ export function Route({
     [index],
   )
   useFrame((_, delta) => {
-    if (!paused) elapsed.current += Math.min(delta, MAX_FRAME_DELTA) * speed
-    const { start, end } = routeWindow(elapsed.current, index, routes.length)
+    // 暂停时保持上一帧的 GPU 状态；首次暂停挂载已由 onUpdate 设置为空。
+    if (paused) return
+    elapsed.current += Math.min(delta, MAX_FRAME_DELTA) * speed
+    const { start, end } = routeWindow(
+      elapsed.current,
+      index,
+      routes.length,
+      window,
+    )
     if (!geometry.current || !material.current) return
     // TubeGeometry 沿路线分为 160 段，每段 5 个侧面 × 2 三角形 × 3 索引。
     // floor/ceil 保守包含边界段；fragment shader 再裁掉不足一段的部分。

@@ -1,4 +1,4 @@
-import { toPosition } from './math/coordinates'
+import { toPosition } from './math/coordinates.ts'
 
 /** 相机、几何与动画的共享约束；相机控制和插值必须使用一致的距离限制。 */
 export const HOME_POSITION = toPosition(24, 108, 6.94).toArray()

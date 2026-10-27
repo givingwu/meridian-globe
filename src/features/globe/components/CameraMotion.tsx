@@ -1,85 +1,67 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo } from 'react'
+import type { ComponentRef, RefObject } from 'react'
+import type { OrbitControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Quaternion, Vector3 } from 'three'
-import { cities } from '../data/network'
-import { toPosition } from '../math/coordinates'
-import {
-  HOME_POSITION,
-  MIN_CAMERA_DISTANCE,
-  MAX_CAMERA_DISTANCE,
-  MAX_FRAME_DELTA,
-} from '../config'
+import { CameraTransition } from '../math/CameraTransition'
 import type { GlobeProps } from '../types'
 
+type Controls = ComponentRef<typeof OrbitControls>
+
 /**
- * 将用户的离散命令同步到 Three.js 相机；Effect 用于外部对象同步，而非派生 UI 状态。
- * selected 是目标城市，reset 是递增命令号，zoom 的符号表示方向、绝对值区分连续点击。
- * 每帧分别插值方向和半径，防止 XYZ 直线插值沿弦穿过地球。
- * 拖动时立即取消程序动画，把相机控制权归还 OrbitControls。
+ * React 只传递用户命令；连续运动完全属于 Three.js。
+ * 单个 Effect 消费最新命令，懒加载完成时不会被另一个初始化 Effect 覆盖。
+ * 每帧 -2 优先级先处理目标与自动旋转开关，Drei OrbitControls 的 -1 随后更新。
+ * 两者不会同时自动驱动镜头；用户 pointerdown/wheel 则立即取回控制权。
  */
 export function CameraMotion({
+  controlsRef,
+  cameraCommand,
   selected,
-  reset,
-  zoom,
+  paused,
   onSelect,
-}: Pick<GlobeProps, 'selected' | 'reset' | 'zoom' | 'onSelect'>) {
-  const { camera } = useThree()
-  const target = useRef<Vector3 | null>(null)
-  const turn = useMemo(() => new Quaternion(), [])
-  const step = useMemo(() => new Quaternion(), [])
-  const direction = useMemo(() => new Vector3(), [])
-  useEffect(() => {
-    if (selected !== null)
-      target.current = toPosition(
-        cities[selected].lat,
-        cities[selected].lon,
-        camera.position.length(),
-      )
-  }, [selected, camera])
-  useEffect(() => {
-    target.current = new Vector3(...HOME_POSITION)
-  }, [reset])
-  useEffect(() => {
-    if (zoom)
-      target.current = camera.position
-        .clone()
-        .normalize()
-        .multiplyScalar(
-          Math.max(
-            MIN_CAMERA_DISTANCE,
-            Math.min(
-              MAX_CAMERA_DISTANCE,
-              camera.position.length() - Math.sign(zoom) * 0.65,
-            ),
-          ),
-        )
-  }, [zoom, camera])
-  useFrame((_, delta) => {
-    if (!target.current) return
-    // 指数平滑按秒衰减，正常帧率下近似与刷新率无关；钳制后台恢复的大 delta。
-    const alpha = 1 - Math.exp(-Math.min(delta, MAX_FRAME_DELTA) * 4)
-    const radius = camera.position.length()
-    const nextRadius = radius + (target.current.length() - radius) * alpha
-    direction.copy(target.current).normalize()
-    // 仅对单位方向做四元数球面插值，再乘独立插值的半径。
-    // 中间向量/四元数复用，避免 60fps 循环产生短命对象与 GC 抖动。
-    camera.position.normalize()
-    turn.setFromUnitVectors(camera.position, direction)
-    step.identity().slerp(turn, alpha)
-    camera.position.applyQuaternion(step).multiplyScalar(nextRadius)
-    camera.lookAt(0, 0, 0)
-    if (camera.position.distanceTo(target.current) < 0.005)
-      target.current = null
-  })
-  // 原生 pointerdown 在拖动开始就取消目标；清理监听防止 StrictMode 重复注册。
+}: Pick<GlobeProps, 'cameraCommand' | 'selected' | 'paused' | 'onSelect'> & {
+  controlsRef: RefObject<Controls | null>
+}) {
+  const camera = useThree((state) => state.camera)
   const gl = useThree((state) => state.gl)
+  const motion = useMemo(() => new CameraTransition(), [])
   useEffect(() => {
-    const stop = () => {
-      target.current = null
-      if (selected !== null) onSelect(null)
+    const controls = controlsRef.current
+    if (controls && cameraCommand.type !== 'idle') {
+      // 清空上一段手动拖动的阻尼余量，避免它与新的程序过渡叠加。
+      // OrbitControls 在关闭 damping 的一次 update 后清空 sphericalDelta。
+      const damping = controls.enableDamping
+      controls.autoRotate = false
+      controls.enableDamping = false
+      controls.update()
+      controls.enableDamping = damping
     }
-    gl.domElement.addEventListener('pointerdown', stop)
-    return () => gl.domElement.removeEventListener('pointerdown', stop)
-  }, [gl, selected, onSelect])
+    motion.apply(cameraCommand, camera.position)
+  }, [cameraCommand, camera, controlsRef, motion])
+  useFrame((_, delta) => {
+    const controls = controlsRef.current
+    const wasMoving = motion.active
+    motion.advance(camera.position, delta)
+    if (wasMoving) camera.lookAt(0, 0, 0)
+    if (controls)
+      controls.autoRotate = !motion.active && !paused && selected === null
+  }, -2)
+  useEffect(() => {
+    const controls = controlsRef.current
+    const stop = () => {
+      motion.cancel()
+      onSelect(null)
+    }
+    // capture 在 OrbitControls 自己的事件处理前执行；wheel 监听只观察，不阻止滚动。
+    const element = gl.domElement
+    element.addEventListener('pointerdown', stop, { capture: true })
+    element.addEventListener('wheel', stop, { capture: true, passive: true })
+    return () => {
+      element.removeEventListener('pointerdown', stop, true)
+      element.removeEventListener('wheel', stop, true)
+      motion.reset()
+      if (controls) controls.autoRotate = false
+    }
+  }, [gl, motion, onSelect, controlsRef])
   return null
 }

@@ -23,7 +23,7 @@ export function PlaybackControls({
 >) {
   return (
     <div className="controlbar">
-      <div className="playback">
+      <div className="playback flex items-center">
         <button
           className="play-button"
           onClick={togglePaused}
