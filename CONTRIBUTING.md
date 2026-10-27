@@ -14,6 +14,8 @@ For bugs, open an [issue](https://github.com/givingwu/meridian-globe/issues) wit
 4. Run `pnpm format:check`, `pnpm lint`, `pnpm test`, `pnpm test:browser`, and `pnpm build`. Install Chromium with `pnpm exec playwright install chromium` first.
 5. Open a PR against `master`, explaining the problem, the result and how you checked it. CI must pass before merge.
 
+Keep component styles in Tailwind `className`, and reuse repeated UI through components. Reserve `global.css` for global tokens and base policies.
+
 Keep README.md and README.zh-CN.md in sync for user-facing changes. Core code comments are currently in Chinese; clear English additions are welcome too. Do not put React state updates or new geometry/material construction in frame callbacks. New browser listeners and GPU resources need a clear owner and cleanup path.
 
 Contributions are made under the repository's [MIT License](LICENSE). Please do not commit credentials or assets you do not have permission to distribute.
@@ -29,6 +31,8 @@ Contributions are made under the repository's [MIT License](LICENSE). Please do 
 3. 一次聚焦一个问题。行为修复补回归测试；视觉变更附桌面和移动端截图；性能变更说明测量方式与设备。
 4. 执行 `pnpm format:check`、`pnpm lint`、`pnpm test`、`pnpm test:browser` 和 `pnpm build`。浏览器测试前先用 `pnpm exec playwright install chromium` 安装 Chromium。
 5. 提交指向 `master` 的 PR，说明问题、改动结果和验证方式。CI 通过后才能合并。
+
+组件样式直接使用 Tailwind `className`，重复界面通过组件复用；`global.css` 仅用于全局变量与基础策略。
 
 影响使用方式的变更请同步更新中英文 README。核心注释目前以中文为主，也欢迎清楚的英文说明。不要在帧回调中更新 React state 或创建新的几何、材质；新增浏览器监听和 GPU 资源时，写清楚归属与清理路径。
 

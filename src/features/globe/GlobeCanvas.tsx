@@ -18,7 +18,10 @@ export default function GlobeCanvas(props: GlobeProps) {
       frameloop={visible ? 'always' : 'never'}
       gl={{ antialias: true, alpha: true }}
       fallback={
-        <div className="fallback">
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center gap-[18px] text-[13px] text-[#a69bcf]"
+          data-ui="fallback"
+        >
           当前浏览器不支持 WebGL，请使用开启硬件加速的浏览器。
         </div>
       }
