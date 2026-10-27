@@ -55,7 +55,7 @@ pnpm dev
 | `pnpm format` / `pnpm format:check` | 写入 / 检查 Prettier 格式      |
 | `pnpm generate:land`                | 重新生成随项目打包的陆地点阵   |
 
-首次运行浏览器测试前，执行 `pnpm exec playwright install chromium`。Linux CI 使用 `pnpm exec playwright install --with-deps chromium`。测试会在 5174 端口启动独立的本地服务。
+首次运行浏览器测试前，执行 `pnpm exec playwright install chromium`。精简 Linux 环境可用 `pnpm exec playwright install --with-deps chromium` 补齐系统库。CI 使用 GitHub Ubuntu 运行器已有的系统库，只下载锁定版本的 Chromium headless shell。测试会在 5174 端口启动独立的本地服务。
 
 ## 地球是怎么画出来的
 

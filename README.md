@@ -55,7 +55,7 @@ Open the address printed by Vite, normally **http://127.0.0.1:5173/**. No API ke
 | `pnpm format` / `pnpm format:check` | Write / check Prettier formatting                   |
 | `pnpm generate:land`                | Regenerate the bundled land point cloud             |
 
-Before the first browser test run, install its browser with `pnpm exec playwright install chromium`. On Linux CI, use `pnpm exec playwright install --with-deps chromium`. Tests start a separate local server on port 5174.
+Before the first browser test run, install its browser with `pnpm exec playwright install chromium`. On a minimal Linux host, use `pnpm exec playwright install --with-deps chromium` to install system libraries too. CI uses the libraries already present on GitHub's Ubuntu runner and downloads only the pinned Chromium headless shell. Tests start a separate local server on port 5174.
 
 ## How the globe works
 
