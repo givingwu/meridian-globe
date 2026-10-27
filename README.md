@@ -127,7 +127,9 @@ pnpm build
 
 工作流固定 Actions 的完整提交 SHA，使用 pnpm 缓存、明确 Node/pnpm 版本、任务超时和并发控制。默认令牌只读，只有部署任务获得 Pages/OIDC 写权限。Dependabot 每周检查 Actions 更新。部署使用 `github-pages` environment，不需要个人访问令牌或额外仓库密钥。
 
-GitHub 仓库的 **Settings → Pages → Source** 必须为 **GitHub Actions**。若复制本仓库，需要在新仓库启用此设置。建议在团队协作时为 `master` 配置要求 `Validate and build` 成功的分支规则。
+GitHub 仓库的 **Settings → Pages → Source** 必须为 **GitHub Actions**。若复制本仓库，需要在新仓库启用此设置。`master` 已启用分支保护（包括管理员）：必须通过 PR 合并，分支需与 `master` 保持同步，且 GitHub Actions 的 `Validate and build` 检查通过；讨论需解决，禁止强推、删除和非线性合并。当前不要求额外审批人数，适合个人仓库；CI 与 PR 要求仍强制执行。分支保护是 GitHub 仓库设置，fork 不会自动继承。
+
+推荐流程：新建功能分支 → 提交 PR → CI 通过 → squash/rebase 合并 → `master` 再次验证 → 自动部署 Pages。页面右上角的 GitHub 快捷链接在新窗口打开源码仓库。
 
 `VITE_BASE_PATH` 控制部署路径：工作流设为 `/<仓库名>/`，本地开发默认为 `/`。构建后也可将 `dist/` 放到其他静态托管服务。
 

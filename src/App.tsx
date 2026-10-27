@@ -15,6 +15,7 @@ import {
   Radio,
   X,
   Code2,
+  Github,
 } from 'lucide-react'
 import { cities, routes } from './data'
 const Globe = lazy(() => import('./Globe'))
@@ -77,11 +78,13 @@ export default function App() {
         </nav>
         <a
           className="source-link"
-          href="https://stripe.com/blog/globe"
+          href="https://github.com/givingwu/meridian-globe"
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
+          aria-label="在 GitHub 查看 Meridian Globe 源码（新窗口）"
         >
-          Inspired by Stripe <ArrowUpRight size={14} />
+          <Github size={16} aria-hidden="true" />
+          GitHub <ArrowUpRight size={14} aria-hidden="true" />
         </a>
       </header>
       <main>
